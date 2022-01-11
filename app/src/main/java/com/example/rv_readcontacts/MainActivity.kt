@@ -1,26 +1,29 @@
 package com.example.rv_readcontacts
 
-import android.database.Cursor
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.ContactsContract
-import android.provider.MediaStore
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.CursorAdapter
-import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.rv_readcontacts.adapter.ContactAdapter
 import com.example.rv_readcontacts.databinding.ActivityMainBinding
 import com.example.rv_readcontacts.model.Contact
-import com.facebook.shimmer.ShimmerFrameLayout
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        const val PERMISSIONS_REQUEST_READ_CONTACTS = 100
+    }
+
+    private lateinit var adapter: ContactAdapter
     private val array = ArrayList<String>()
     private lateinit var bin: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         bin = ActivityMainBinding.inflate(layoutInflater)
         setContentView(bin.root)
 
+        permission()
         bin.recyclerview.layoutManager = GridLayoutManager(this, 1)
 
         bin.btnReadContact.setOnClickListener {
@@ -63,7 +67,25 @@ class MainActivity : AppCompatActivity() {
         }
         val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_expandable_list_item_1, array)
         bin.autoCompleteText.setAdapter(arrayAdapter)
-        bin.recyclerview.adapter = ContactAdapter(this, contactList)
+
+        adapter = ContactAdapter(this, contactList, ContactAdapter.ItemClickListener {
+            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${it.number}"))
+            startActivity(intent)
+        })
+        bin.recyclerview.adapter = adapter
+
         contacts.close()
+    }
+
+    private fun permission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
+                Manifest.permission.READ_CONTACTS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(Manifest.permission.READ_CONTACTS),
+                PERMISSIONS_REQUEST_READ_CONTACTS
+            )
+        }
     }
 }

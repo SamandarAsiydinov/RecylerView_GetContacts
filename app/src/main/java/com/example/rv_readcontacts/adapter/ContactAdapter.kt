@@ -12,8 +12,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.rv_readcontacts.R
 import com.example.rv_readcontacts.model.Contact
 
-class ContactAdapter(val context: Context, val list: List<Contact>) :
+class ContactAdapter(val context: Context, val list: List<Contact>, val itemClickListener: ItemClickListener) :
     RecyclerView.Adapter<ContactAdapter.CustomViewHolder>() {
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -25,14 +26,20 @@ class ContactAdapter(val context: Context, val list: List<Contact>) :
     override fun onBindViewHolder(holder: CustomViewHolder, position: Int) {
         holder.tvName.text = list[position].name
         holder.tvNumber.text = list[position].number
+
+        holder.itemView.setOnClickListener {
+            itemClickListener.callBack(list[position])
+        }
     }
 
     override fun getItemCount(): Int {
         return list.size
     }
 
-    class CustomViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+    inner class CustomViewHolder(v: View) : RecyclerView.ViewHolder(v) {
         val tvName: TextView = v.findViewById(R.id.tv_name)
         val tvNumber: TextView = v.findViewById(R.id.tv_phone_number)
     }
+
+    class ItemClickListener(val callBack: (contact: Contact) -> Unit)
 }
